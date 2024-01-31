@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Karaoke Player</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+  <style>
+    
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: black;
+      
+    }
+
+    #playerContainer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    #player {
+      width: 100%;
+      height: 100%;
+    }
+    button{
+      -webkit-app-region: no-drag;
+    }
+  </style>
+</head>
+<body style="-webkit-app-region: drag;">
+  <div id="playerContainer">
+    <div id="player" style="-webkit-app-region: drag;"></div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script>
+
+    const socket = io();
+    let player;
+
+    socket.on('loadVideo', (videoId, title,thum) => {
+      if (player) {
+        player.loadVideoById(videoId);
+      } else {
+        player = new YT.Player('player', {
+          height: '100%',
+          width: '100%',
+          videoId: videoId,
+          playerVars: {
+            'autoplay': 1,
+            'controls': 1,
+            'fs': 1,  // Disable fullscreen
+            'modestbranding': 0,  // Hide YouTube logo
+            'showinfo': 0,  // Hide video title and uploader
+            'iv_load_policy': 0,  // Disable video annotations,
+            // 'vq': 'hd720'
+            'thum':thum,
+            'title':title
+          },
+          events: {
+            'onReady': onPlayerReady,
+            'onStateChange': onPlayerStateChange
+          }
+        });
+      }
+    });
+
+    function onPlayerReady(event) {
+      event.target.playVideo();
+      event.target.setVolume(100);  // Set volume (0-100)
+      $('#player').attr('style', '-webkit-app-region: no-drag;');
+      // console.log(event)
+
+    }
+    var intervalId;
+    function onPlayerStateChange(event) {
+        if (event.data == YT.PlayerState.PLAYING) {
+            // Set up an interval to update the timeline every second.
+            intervalId = setInterval(updateTimeline, 100);
+        } else {
+            clearInterval(intervalId);
+        }
+    }
+
+    socket.on('volume',(vol)=>{
+      // console.log('volume = '+vol)
+      player.setVolume(vol)
+    });
+    var iframe;
+    iframe = $('#player');
+
+    socket.on('func',(fun)=>{
+      if (fun == 'stop')
+      {
+        player.stopVideo();
+      }
+      else if(fun == 'play/pause'){
+        if (player.getPlayerState() == YT.PlayerState.PAUSED) {
+          player.playVideo();
+        } else {
+          player.pauseVideo();
+        }
+      }
+      
+    });
+
+    // Function to update the timeline with the current playback time.
+    function updateTimeline() {
+        // Get the current playback time from the player.
+        var currentTime = player.getCurrentTime();
+        var fullTime = player.getDuration();
+        // console.log(player.getVideoUrl())
+        // Update your timeline UI with the current playback time.
+        // For example, you can update a progress bar or display the current time.
+        if (currentTime == fullTime)
+        {
+          clearInterval(intervalId);
+          $('#player').html('');
+        }
+        socket.emit('timeline', JSON.stringify({curtime:currentTime,maxtime:fullTime}));
+        // console.log('Current playback time: ' + currentTime);
+
+      }
+
+    
+  </script>
+</body>
+</html>

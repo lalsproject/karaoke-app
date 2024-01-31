@@ -1,0 +1,12 @@
+# Node.js dependencies
+/node_modules
+
+# Electron build artifacts
+/build
+
+# Log files
+*.log
+
+# OS-specific files
+.DS_Store
+Thumbs.db

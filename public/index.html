@@ -1,0 +1,403 @@
+
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Karaoke App</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style type="text/css" media="screen">
+	body {
+	background-color: #2c3e50;
+	color: white;
+	font-family: Arial, sans-serif;
+	padding: 20px;
+	
+  }
+
+  
+  .container {
+	  border-radius: 10px;
+	  padding: 20px;
+	  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+	  backdrop-filter: blur(5px);
+	  background-color: rgba(0, 0, 0, 0.5); /* Warna overlay untuk efek gelap */
+	  background-size: cover;
+	  background-position: center;
+	  transition: background-image 0.5s ease;
+	  position: relative;
+	  margin: auto;
+/*      margin-top: 100px; /* Adjust top margin to center vertically */*/
+	  max-width: 1850px; /* Adjust maximum width as needed */
+	  width: 100%;
+	}
+
+
+  #searchResults {
+	overflow-y: auto;
+  }
+
+  .videoResult {
+	display: flex;
+	align-items: center;
+	margin-bottom: 10px;
+	padding: 10px;
+	border: 1px solid #ddd;
+	border-radius: 5px;
+	cursor: pointer;
+	transition: background-color 0.3s;
+  }
+
+  .videoResult:hover {
+	background-color: #2c3e50;
+  }
+
+  .thumbnail {
+	width: 80px;
+	height: 60px;
+	margin-right: 10px;
+  }
+
+  .videoTitle {
+	cursor: pointer;
+	margin: 0;
+	color: white;
+  }
+
+  #playerControls {
+	margin-top: 20px;
+  }
+
+  #playerControls button {
+/*    background-color: #2980b9;*/
+	border: none;
+	color: white;
+	padding: 10px 20px;
+	cursor: pointer;
+	border-radius: 5px;
+	margin-right: 10px;
+	transition: background-color 0.3s;
+  }
+
+  #playerControls button:hover {
+/*    background-color: #1a5276;*/
+  }
+
+  #songInfo {
+	margin-top: 20px;
+	text-align: center;
+  }
+
+  #timeline {
+	margin-top: 20px;
+	width: 100%;
+  }
+
+  #currentSongTitle {
+	font-size: 18px;
+	margin-bottom: 10px;
+  }
+
+  /* Gaya tambahan untuk thumbnail */
+  .thumbnail-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0.5); /* Warna overlay untuk efek gelap */
+	z-index: 1; /* Memastikan overlay berada di atas thumbnail */
+	border-radius: 10px; /* Mengikuti border radius container */
+  }
+  .modal-content{
+  	background: #ffffff38 !important;
+  	backdrop-filter: blur(5px);
+  }
+
+  </style>
+</head>
+<body class="body">
+  <div class="container">
+	<div class="row">
+	  <div class="col-md-12">
+		<h2 style="text-align: center;">Karaoke Player</h2>
+		<br>
+		<div id="songInfo" style="text-align: center;">
+		  <h3 id="currentSongTitle">Now Playing: Song Title</h3>
+		</div>
+		<div id="timeline">
+		  <input type="range" min="0" style="width: 100%;" max="100" value="0" id="songTimeline">
+		</div>
+		<br>
+		<div class="input-group mb-3">
+		  <input type="text" class="form-control" id="searchInput" placeholder="Search for a song">
+		  <button class="btn btn-primary" onclick="search()">Search</button>
+		  <button class="btn btn-success" onclick="playlist()">Playlist</button>
+		</div>
+		<div id="searchResults" style="overflow: auto;height: 450px;">
+		  
+		</div>
+		<div id="playerControls" style="text-align: center;">
+		  <button class="btn btn-primary" onclick="playPause()"><i class="fa fa-play"></i> / <i class="fa fa-pause"></i></button>
+		  <button onclick="nextSong()" class="btn btn-warning"><i class="fa fa-arrow-right"></i></button>
+		  <button onclick="stopSong()" class="btn btn-danger"><i class="fa fa-stop"></i></button>
+		  <input type="range" min="0" max="100" value="100" id="volumeRange" onchange="adjustVolume(this.value)">
+		</div>
+
+		
+	  </div>
+	</div>
+  </div>
+  
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <div class="modal" tabindex="-1" id="modal_playlist">
+	  <div class="modal-dialog modal-xl">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <h5 class="modal-title">Playlist</h5>
+	        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+	      </div>
+	      <div class="modal-body" id="data_modal">
+
+	      </div>
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+  <script>
+	const socket = io();
+	let player;
+	let interval;
+
+
+
+	socket.on('loadVideo', (videoId, title,thum) => {
+	  if (player) {
+		// player.loadVideoById(videoId);
+		showSongInfo(title);
+	  } else {
+		player = new YT.Player('player', {
+		  height: '100%',
+		  width: '100%',
+		  videoId: videoId,
+		  playerVars: {
+			'autoplay': 1,
+			'controls': 0,
+			'fs': 0,
+			'modestbranding': 1,
+			'showinfo': 0,
+			'iv_load_policy': 3,
+		  },
+		  events: {
+			'onReady': onPlayerReady,
+			'onStateChange': onPlayerStateChange
+		  }
+		});
+	  }
+	  showSongInfo(title,thum);
+	});
+
+	function onPlayerReady(event) {
+	  event.target.playVideo();
+	  event.target.setVolume(100);
+	  $('#playerControls').show();
+	  interval = setInterval(updateTimeline, 1000);
+	}
+
+	function onPlayerStateChange(event) {
+	  if (event.data == YT.PlayerState.ENDED) {
+		clearInterval(interval);
+		// nextSong();
+	  }
+	}
+
+	function updateTimeline() {
+	  const currentTime = player.getCurrentTime();
+	  const duration = player.getDuration();
+	  const progress = (currentTime / duration) * 100;
+	  const songTimeline = document.getElementById('songTimeline');
+	  songTimeline.value = progress;
+	}
+
+	function playPause() {
+	  socket.emit('set_fun', 'play/pause');
+	}
+
+	function nextSong() {
+	  socket.emit('next', '');
+	}
+
+	function fullScreen()
+	{
+	  socket.emit('set_fun', 'fullscreen');
+
+	}
+
+	function adjustVolume(volume) {
+	  // player.setVolume(volume);
+	  // console.log(volume)
+	  socket.emit('set_volume', volume);
+	}
+
+	
+
+	function stopSong() {
+	  // player.stopVideo();
+	  // clearInterval(interval);
+	  socket.emit('set_fun', 'stop');
+	}
+
+	function toggleShuffle() {
+	  // Implementasi logika untuk mode shuffle
+	}
+
+	function toggleRepeat() {
+	  // Implementasi logika untuk mode pengulangan
+	}
+
+	socket.on('next_song', () => {
+		get_playlist()
+	});
+
+	function search() {
+	  const query = document.getElementById('searchInput').value;
+	  socket.emit('search', query);
+	  const searchResults = document.getElementById('searchResults');
+	  searchResults.innerHTML = `
+	  <center>
+		  <div class="spinner-border" role="status">
+			<span class="visually-hidden">Loading...</span>
+		  </div>
+		</center>
+	  `;
+	}
+
+
+	socket.on('searchResults', (results) => {
+	  const searchResults = document.getElementById('searchResults');
+	  
+	  searchResults.innerHTML ='';
+	  results.forEach((result) => {
+		const videoId = result.id;
+		const title = result.title;
+		const thumbnailUrl = result.thumbnails.high.url;
+		searchResults.innerHTML += `
+		  <div class="videoResult" onclick="selectVideo('${videoId}', '${decodeHtmlCharCodes(title)}','${thumbnailUrl}')">
+			<img class="thumbnail" src="${thumbnailUrl}" alt="Thumbnail">
+			<p class="videoTitle">${decodeHtmlCharCodes(title)}</p>
+		  </div>`;
+	  });
+
+	});
+	var last_max = 0;
+	socket.on('update_timeline', (results) => {
+	  results = jQuery.parseJSON(results);
+
+	  
+	  // console.log(Math.round(results.curtime)+" - "+Math.round(results.maxtime))
+	  $('#songTimeline').val(results.curtime)
+	  if (last_max != results.maxtime)
+	  {
+		// console.log('BEDAA')
+		$('#songTimeline').removeAttr('max');
+		$('#songTimeline').attr('max',results.maxtime);  
+	  }
+
+	  if((Math.round(results.curtime) == Math.round(results.maxtime)) && results.maxtime > 0)
+	  {
+	  	nextSong();
+	  }
+	  last_max = results.maxtime
+	});
+
+	function selectVideo(videoId, title,thum) {
+	  // 
+	  socket.emit('selectVideo', videoId, title,`${thum}`);
+	  socket.emit('get_playlist', 'aa');
+
+	}
+
+	function playVideo(id,videoId, title,thum) {
+		$('.body').attr('style', `background:url(${thum});background-size: cover;background-repeat: no-repeat;background-position: center;`);
+		socket.emit('playVideo', id,videoId, decodeHtmlCharCodes(title),`${thum}`);
+		delete_playlist(id)
+	}
+
+	function get_playlist()
+	{
+	  socket.emit('get_playlist', 'aa');
+	  return false;
+	}
+
+	socket.on('res_playlist', (data) => {
+	  // console.log(data);
+	  // let totalSong = Object.keys(data).length;
+	  let html = '';
+	  if (data != "")
+	  {
+		  data.forEach((data) => {
+			const videoId = data.id_video;
+			const title = decodeHtmlCharCodes(data.title);
+			const thumbnailUrl = data.thum;
+			html += `
+			<div class="row">
+				<div class="col-md-12">
+				  <div class="videoResult">
+					<img class="thumbnail" src="${thumbnailUrl}" alt="Thumbnail">
+					<p class="videoTitle" >${decodeHtmlCharCodes(title)} - <button type="button" class="btn btn-success btn-sm" onclick="playVideo('${data.id}', '${videoId}', '${decodeHtmlCharCodes(title)}','${thumbnailUrl}')"><i class="fas fa-play"></i></button> - <button type="button" class="btn btn-danger btn-sm" onclick="delete_playlist(${data.id})"><i class="fas fa-trash"></i></button></p>
+				  </div>
+				</div>
+			</div>`;
+			
+
+		  });
+	  }
+	  else
+	  {
+	  	html +=`
+	  		<h4><center>Tidak Ada Lagu Dalam Playlist</center></h4>
+	  	`;
+	  }
+	  $('#data_modal').html(html);
+
+	});
+
+	function showSongInfo(title,thum) {
+	  const currentSongTitle = document.getElementById('currentSongTitle');
+	  $('.body').attr('style', `background:url(${thum});background-size: cover;background-repeat: no-repeat;background-position: center;`);
+	  currentSongTitle.textContent = dec_char(title);
+	}
+
+	function delete_playlist(id)
+	{
+		socket.emit('delete_playlist', id);
+		get_playlist();
+	}
+
+	function playlist()
+	{
+		get_playlist();
+		$('#modal_playlist').modal('show');
+	}
+
+
+	function decodeHtmlCharCodes(str) { 
+		  return str.replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;").replace(/'/g, "&quot;");
+		  
+		}
+
+	function dec_char(str) {
+		return str.replace(/(&#(\d+);)'"/g, function(match, capture, charCode) {
+		    return String.fromCharCode(charCode);
+		  });
+	}
+  </script>
+</body>
+</html>
