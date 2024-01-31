@@ -18,11 +18,11 @@ Aplikasi ini dibangun menggunakan teknologi web dengan menggunakan Express.js un
 Pastikan Anda telah menginstal Node.js di komputer Anda.
 Clone repositori ini ke dalam direktori lokal Anda:
 ```bash
-git clone <URL repositori>
+git clone https://github.com/lalsproject/karaoke-app.git
 ```
 Masuk ke direktori proyek:
 ```bash
-cd <nama direktori>
+cd karaoke-app
 ```
 Install dependensi dengan menjalankan perintah:
 ```bash
