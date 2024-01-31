@@ -14,12 +14,18 @@ const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database('./media.db');
 
 console.log(db)
+require('dotenv').config();
 
-const googleApiKey = 'AIzaSyC7gMmk4m-5zPVNky-daB3JyWH2nsnW2O8'; // Ganti dengan API key Google Anda
+const port = process.env.PORT;
+const API_KEY = process.env.API_KEY;
+
+const googleApiKey = API_KEY; // Ganti dengan API key Google Anda
 const youtubeSearchOpts = {
   maxResults: 25,
   key: googleApiKey,
 };
+
+
 
 app.use(express.static('public'));
 
@@ -136,7 +142,7 @@ io.on('connection', (socket) => {
 
   
 
-server.listen(3000, () => {
+server.listen(port, () => {
   console.log('Server is running');
 });
 

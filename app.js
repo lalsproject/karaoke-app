@@ -1,11 +1,14 @@
 const { app, BrowserWindow } = require('electron');
+require('dotenv').config();
+
+const port = process.env.PORT;
 
 let mainWindow;
 let playWindow;
 
 function createWindow() {
   mainWindow = new BrowserWindow({ width: 784, height: 830,autoHideMenuBar: true,transparent:true});
-  mainWindow.loadURL('http://localhost:3000');
+  mainWindow.loadURL('http://localhost:'+port);
 
   playWindow = new BrowserWindow({ width: 1366, height: 768,visibleOnFullScreen: true,frame: false,webPreferences: {
             nodeIntegration: true
@@ -15,7 +18,7 @@ function createWindow() {
   playWindow.setAlwaysOnTop(true, 'screen-saver', 1);
   playWindow.setMenu(null);
 
-  playWindow.loadURL('http://localhost:3000/play');
+  playWindow.loadURL('http://localhost:'+port+'/play');
 
   mainWindow.setMenu(null);
   mainWindow.on('closed', () => {
