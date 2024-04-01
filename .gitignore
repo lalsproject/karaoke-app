@@ -3,10 +3,14 @@
 
 # Electron build artifacts
 /build
+/public/index_bk.html
 
 # Log files
 *.log
-
+.env
+loader2.js
+index_bk.js
+player1.html
 # OS-specific files
 .DS_Store
 Thumbs.db

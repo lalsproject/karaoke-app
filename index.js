@@ -21,7 +21,7 @@ const API_KEY = process.env.API_KEY;
 
 const googleApiKey = API_KEY; // Ganti dengan API key Google Anda
 const youtubeSearchOpts = {
-  maxResults: 25,
+  maxResults: 50,
   key: googleApiKey,
 };
 

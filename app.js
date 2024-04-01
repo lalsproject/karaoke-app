@@ -1,4 +1,5 @@
 const { app, BrowserWindow } = require('electron');
+
 require('dotenv').config();
 
 const port = process.env.PORT;
@@ -42,4 +43,5 @@ app.on('activate', () => {
   if (mainWindow === null) {
     createWindow();
   }
+
 });
