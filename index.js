@@ -45,7 +45,7 @@ const youtube = google.youtube({
 io.on('connection', (socket) => {
 
   socket.on('search', (query) => {
-    youtubeSearch(query+' Karaoke', youtubeSearchOpts, (err, results) => {
+    youtubeSearch(query+'', youtubeSearchOpts, (err, results) => {
       if (err) return console.log(err);
       socket.emit('searchResults', results);
     });
